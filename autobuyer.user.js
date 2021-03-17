@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         FUT 21 Autobuyer Menu with TamperMonkey
+// @name         FUT 21 Autobuyer V2
 // @namespace    http://tampermonkey.net/
 // @version      2.0.9
 // @updateURL    https://raw.githubusercontent.com/chithakumar13/Fifa21-AutoBuyer/master/autobuyer.js
