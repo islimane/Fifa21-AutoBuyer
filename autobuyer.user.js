@@ -354,7 +354,7 @@
             if (isStart) {
                 window.purchasedCardCount = 0;
                 window.firstSearch = true;
-                window.userWatchItems = response.data.items.filter((item) => item._auction).map((item) => item._auction.tradeId) || [];
+                window.userWatchItems = response.data.items.filter((item) => (item._auction && !item.getAuctionData().isWon())).map((item) => item._auction.tradeId) || [];
                 window.isSearchInProgress = false;
                 if (window.userWatchItems.length) {
                     writeToDebugLog(`Found ${window.userWatchItems.length} items in users watch list and ignored from selling`);
@@ -2252,7 +2252,9 @@
             });
 
             services.Item.refreshAuctions(activeItems).observe(this, function (t, refreshResponse) {
+                // writeToLog('refreshAuctions()');
                 services.Item.requestWatchedItems().observe(this, function (t, watchResponse) {
+                    // writeToLog('requestWatchedItems()');
                     if (window.autoBuyerActive && bidPrice) {
 
                         let outBidItems = watchResponse.data.items.filter(function (item) {
@@ -2287,22 +2289,29 @@
                         }
                     }
 
+                    // writeToLog('## window.autoBuyerActive: ' + window.autoBuyerActive);
+                    // writeToLog('## sellPrice: ' + sellPrice);
+                    // writeToLog('## !isNaN(sellPrice): ' + !isNaN(sellPrice));
                     if (window.autoBuyerActive && sellPrice && !isNaN(sellPrice)) {
-
+                        // writeToLog('response.data.items.length:', response.data.items ? response.data.items.length : 0);
                         let boughtItems = response.data.items.filter(function (item) {
+                            // writeToLog('item - isWon(): ' + item.getAuctionData().isWon());
+                            // writeToLog('item - !userWatchItems.includes: ' + !window.userWatchItems.includes(item._auction.tradeId));
+                            // writeToLog('item - !sellBids.includes: ' + !window.sellBids.includes(item._auction.tradeId));
                             return item.getAuctionData().isWon() && !window.userWatchItems.includes(item._auction.tradeId) && !window.sellBids.includes(item._auction.tradeId);
                         });
+                        // writeToLog('boughtItems.length:', boughtItems ? boughtItems.length : 0);
 
-                        for (var i = 0; i < boughtItems.length; i++) {
+                        for (let i = 0; i < 1; i++) {
                             let player = boughtItems[i];
                             let auction = player._auction;
 
                             window.sellBids.push(auction.tradeId);
                             let player_name = window.getItemName(player);
-                            writeToLog(" ($$$) " + player_name + '[' + player._auction.tradeId + '] -- Selling for: ' + sellPrice);
                             player.clearAuction();
 
                             window.sellRequestTimeout = window.setTimeout(function () {
+                                writeToLog(" ($$$) " + player_name + '[' + player._auction.tradeId + '] -- Selling for: ' + sellPrice);
                                 services.Item.list(player, window.getSellBidPrice(sellPrice), sellPrice, 3600);
                             }, window.getRandomWait());
                         }
